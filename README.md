@@ -1,5 +1,5 @@
-# This is a WebUI plugin for Stablediffunity
-# 這是Stablediffunity的WebUI插件
+# This is a stable-diffusion-webui Extensions for Stablediffunity
+# 這是Stablediffunity的stable-diffusion-webui插件
 
 Github: https://github.com/tim099/StablediffunityWebUI
 Stablediffunity Github: https://github.com/tim099/Stablediffunity
