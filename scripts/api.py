@@ -4,6 +4,7 @@ from fastapi import FastAPI, Body
 from fastapi.exceptions import HTTPException
 
 import gradio as gr
+import modules.launch_utils as launch_utils
 
 from modules.api.models import *
 from modules.api import api
@@ -18,7 +19,16 @@ def stablediffunity_api(_: gr.Blocks, app: FastAPI):
     async def version():
         print("stablediffunity/version:" + StablediffunityVersion)
         return {"version": StablediffunityVersion}
-    
+    @app.post("/stablediffunity/git_clone")
+    async def detect(
+        url: str = Body("none", title='Url'),
+        target_dir: str = Body("none", title='Dir'),
+        branch: str = Body("none", title='Branch'),
+    ):
+        launch_utils.git_clone(url,target_dir,branch)
+        clone_result = "git_clone url:" + url+",dir:"+target_dir+",branch:"+branch;
+        print(clone_result)
+        return {"git_clone": clone_result}
 
 
 try:
