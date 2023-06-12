@@ -2,13 +2,13 @@ import os
 import numpy as np
 from fastapi import FastAPI, Body
 from fastapi.exceptions import HTTPException
+from pathlib import Path
 
 import gradio as gr
 import modules.launch_utils as launch_utils
-
+import modules.sd_vae as sd_vae
 from modules.api.models import *
 from modules.api import api
-from pathlib import Path
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
@@ -19,6 +19,13 @@ def stablediffunity_api(_: gr.Blocks, app: FastAPI):
     async def version():
         print("stablediffunity/version:" + StablediffunityVersion)
         return {"version": StablediffunityVersion}
+
+    @app.get("/stablediffunity/sd-vae")
+    async def vae():
+        print("/stablediffunity/sd-vae")
+        sd_vae.refresh_vae_list();
+        return {"VAE": [{"name": x, "path": sd_vae.vae_dict[x]} for x in sd_vae.vae_dict.keys()]}
+
     @app.post("/stablediffunity/git_clone")
     async def detect(
         url: str = Body("none", title='Url'),
@@ -29,7 +36,6 @@ def stablediffunity_api(_: gr.Blocks, app: FastAPI):
         clone_result = "git_clone url:" + url+",dir:"+target_dir+",branch:"+branch;
         print(clone_result)
         return {"git_clone": clone_result}
-
 
 try:
     import modules.script_callbacks as script_callbacks
