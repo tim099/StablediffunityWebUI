@@ -26,6 +26,15 @@ def stablediffunity_api(_: gr.Blocks, app: FastAPI):
         sd_vae.refresh_vae_list();
         return {"VAE": [{"name": x, "path": sd_vae.vae_dict[x]} for x in sd_vae.vae_dict.keys()]}
 
+    @app.post("/stablediffunity/set-sd-vae")
+    async def set_vae(
+        vae: str = Body("none", title='Vae'),
+        path: str = Body("none", title='Path'),
+    ):
+        sd_vae.reload_vae_weights(None, path)
+        print("/stablediffunity/set-sd-va vae:"+vae+",path"+path)
+        return {"VAE": vae}
+
     @app.post("/stablediffunity/git_clone")
     async def detect(
         url: str = Body("none", title='Url'),
