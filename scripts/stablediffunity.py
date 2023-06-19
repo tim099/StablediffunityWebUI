@@ -6,7 +6,6 @@ from typing import Dict, Optional, Tuple
 import importlib
 import modules.scripts as scripts
 from modules import shared, devices, script_callbacks, processing, masking, images
-import gradio as gr
 
 from einops import rearrange
 from modules.processing import StableDiffusionProcessingImg2Img, StableDiffusionProcessingTxt2Img
@@ -19,31 +18,16 @@ import torch
 from pathlib import Path
 from PIL import Image, ImageFilter, ImageOps
 
-gradio_compat = True
-try:
-    from distutils.version import LooseVersion
-    from importlib_metadata import version
-    if LooseVersion(version("gradio")) < LooseVersion("3.10"):
-        gradio_compat = False
-except ImportError:
-    pass
 
-
-# Gradio 3.32 bug fix
-import tempfile
-gradio_tempfile_path = os.path.join(tempfile.gettempdir(), 'gradio')
-os.makedirs(gradio_tempfile_path, exist_ok=True)
-
-
-
+SDU_Title = "StableDiffUnity"
 class Script(scripts.Script):
 
     def __init__(self) -> None:
         super().__init__()
-
+        print("StableDiffUnity Script __init__()")
 
     def title(self):
-        return "StableDiffUnity"
+        return SDU_Title
 
     def show(self, is_img2img):
         return scripts.AlwaysVisible
@@ -56,7 +40,7 @@ class Script(scripts.Script):
         """
 
         sd_model = p.sd_model
-
+        print("StableDiffUnity Script process(self, p, *args),p.width:"+str(p.width)+",p.height:"+str(p.height))
 
     def postprocess_batch(self, p, *args, **kwargs):
         images = kwargs.get('images', [])
@@ -68,3 +52,14 @@ class Script(scripts.Script):
         devices.torch_gc()
 
 
+def find_sdu_script(script_runner: scripts.ScriptRunner) -> Optional[scripts.Script]:
+    """
+    Find the StableDiffUnity script in `script_runner`. Returns `None` if `script_runner` does not contain a StableDiffUnity script.
+    """
+
+    if script_runner is None:
+        return None
+
+    for script in script_runner.alwayson_scripts:
+        if script.title() == SDU_Title:
+            return script
