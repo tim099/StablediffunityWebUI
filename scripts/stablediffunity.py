@@ -25,7 +25,6 @@ class Script(scripts.Script):
     def __init__(self) -> None:
         super().__init__()
         print("StableDiffUnity Script __init__()")
-
     def title(self):
         return SDU_Title
 
@@ -52,14 +51,3 @@ class Script(scripts.Script):
         devices.torch_gc()
 
 
-def find_sdu_script(script_runner: scripts.ScriptRunner) -> Optional[scripts.Script]:
-    """
-    Find the StableDiffUnity script in `script_runner`. Returns `None` if `script_runner` does not contain a StableDiffUnity script.
-    """
-
-    if script_runner is None:
-        return None
-
-    for script in script_runner.alwayson_scripts:
-        if script.title() == SDU_Title:
-            return script
