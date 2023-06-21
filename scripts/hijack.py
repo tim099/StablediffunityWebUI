@@ -5,11 +5,6 @@ from typing import Tuple, List
 
 from modules import img2img, script_callbacks
 from scripts import external_code
-import k_diffusion.sampling as sampling
-OriginalFuncName = 'sample_dpmpp_2m'
-NewFuncName = '__original_sample_dpmpp_2m';
-target_module = sampling
-
 
 class HijackData:
     def __init__(self, module, name, new_name, new_value):
@@ -31,23 +26,13 @@ class HijackData:
 
 class Hijack:
     def __init__(self):
-        self.postprocess_batch_callbacks = [self.on_postprocess_batch]
         self.hijack_list = []
-    def process_batch_hijack(self, p, *args, **kwargs):
-        print("SDU_process_batch_hijack")
-        try:
-            return getattr(target_module, NewFuncName)(p, *args, **kwargs)
-        finally:
-            self.dispatch_callbacks(self.postprocess_batch_callbacks, p)
-
-    def on_postprocess_batch(self, p, *args):
-        print("on_postprocess_batch")
 
     def do_hijack(self):
         print("SDU_do_hijack")
         script_callbacks.on_script_unloaded(self.undo_hijack)
-
-        hijack_data = HijackData(target_module,OriginalFuncName,NewFuncName,sample_dpmpp_2m);
+        import k_diffusion.sampling
+        hijack_data = HijackData(k_diffusion.sampling,'sample_dpmpp_2m','__original_sample_dpmpp_2m',sample_dpmpp_2m);
         hijack_data.do_hijack();
         self.hijack_list.append(hijack_data)
 
@@ -58,11 +43,6 @@ class Hijack:
 
         self.hijack_list.clear()
 
-
-
-    def dispatch_callbacks(self, callbacks, *args):
-        for callback in callbacks:
-            callback(*args)
 
 import torch
 from tqdm.auto import trange, tqdm
