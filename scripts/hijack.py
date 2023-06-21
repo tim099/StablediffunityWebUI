@@ -7,10 +7,10 @@ from modules import img2img, script_callbacks
 from scripts import external_code
 
 class HijackData:
-    def __init__(self, module, name, new_name, new_value):
+    def __init__(self, module, name, new_value):
         self.module = module
         self.name = name
-        self.new_name = new_name
+        self.new_name = "__original__" + name
         self.new_value = new_value
 
     def do_hijack(self):
@@ -32,7 +32,7 @@ class Hijack:
         print("SDU_do_hijack")
         script_callbacks.on_script_unloaded(self.undo_hijack)
         import k_diffusion.sampling
-        hijack_data = HijackData(k_diffusion.sampling,'sample_dpmpp_2m','__original_sample_dpmpp_2m',sample_dpmpp_2m);
+        hijack_data = HijackData(k_diffusion.sampling,'sample_dpmpp_2m',sample_dpmpp_2m);
         hijack_data.do_hijack();
         self.hijack_list.append(hijack_data)
 
