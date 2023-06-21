@@ -1,7 +1,7 @@
 from modules.api import api
 from typing import List, Any, Optional, Union, Tuple, Dict
 from modules import scripts, processing, shared
-from scripts.stablediffunity import SDU_Title
+
 import modules.scripts as scripts
 
 class StableDiffUnityUnit:
@@ -139,7 +139,7 @@ def find_sdu_script(script_runner: scripts.ScriptRunner) -> Optional[scripts.Scr
 
     if script_runner is None:
         return None
-
+    from scripts.stablediffunity import SDU_Title
     for script in script_runner.alwayson_scripts:
         if script.title() == SDU_Title:
             return script

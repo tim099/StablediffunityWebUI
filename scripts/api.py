@@ -22,7 +22,7 @@ def stablediffunity_api(_: gr.Blocks, app: FastAPI):
 
     @app.get("/stablediffunity/sd-vae")
     async def vae():
-        print("/stablediffunity/sd-vae")
+        #print("/stablediffunity/sd-vae")
         sd_vae.refresh_vae_list();
         return {"VAE": [{"name": x, "path": sd_vae.vae_dict[x]} for x in sd_vae.vae_dict.keys()]}
 

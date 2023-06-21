@@ -17,7 +17,7 @@ import torch
 
 from pathlib import Path
 from PIL import Image, ImageFilter, ImageOps
-
+from scripts import hijack
 
 SDU_Title = "StableDiffUnity"
 class Script(scripts.Script):
@@ -51,3 +51,4 @@ class Script(scripts.Script):
         devices.torch_gc()
 
 
+hijack.instance.do_hijack()
