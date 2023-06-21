@@ -7,22 +7,29 @@ from modules import img2img, script_callbacks
 from scripts import external_code
 
 class HijackData:
-    def __init__(self, module, name, new_value):
+
+    def __init__(self, module, name, new_function):
         self.module = module
         self.name = name
-        self.new_name = "__original__" + name
-        self.new_value = new_value
+        self.backup_func_name = "__original__" + name
+        self.new_function = new_function
 
     def do_hijack(self):
         print("do_hijack name:"+self.name)
-        setattr(self.module, self.new_name, getattr(self.module, self.name))
-        setattr(self.module, self.name, self.new_value)
+        #backup original function to backup_func_name attr
+        if hasattr(self.module, self.name):
+            setattr(self.module, self.backup_func_name, getattr(self.module, self.name))
+        #hijack new_function to replace original function
+        setattr(self.module, self.name, self.new_function)
 
     def undo_hijack(self):
         print("undo_hijack name:"+self.name)
-        if hasattr(self.module, self.new_name):
-            setattr(self.module, self.name, getattr(self.module, self.new_name))
-            delattr(self.module, self.new_name)
+        #check backup_func_name attr exist
+        if hasattr(self.module, self.backup_func_name):
+            #set original function back
+            setattr(self.module, self.name, getattr(self.module, self.backup_func_name))
+            #delete backup_func_name attr
+            delattr(self.module, self.backup_func_name)
 
 class Hijack:
     def __init__(self):
@@ -32,10 +39,12 @@ class Hijack:
         print("SDU_do_hijack")
         script_callbacks.on_script_unloaded(self.undo_hijack)
         import k_diffusion.sampling
-        hijack_data = HijackData(k_diffusion.sampling,'sample_dpmpp_2m',sample_dpmpp_2m);
+        self.add_hijack_data(k_diffusion.sampling,'sample_dpmpp_2m',sample_dpmpp_2m);
+
+    def add_hijack_data(self, module, name, new_value):
+        hijack_data = HijackData(module,name,new_value);
         hijack_data.do_hijack();
         self.hijack_list.append(hijack_data)
-
     def undo_hijack(self):
         print("SDU_undo_hijack")
         for hijack_data in self.hijack_list:
