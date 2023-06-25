@@ -9,10 +9,7 @@ import modules.launch_utils as launch_utils
 import modules.sd_vae as sd_vae
 from modules.api.models import *
 from modules.api import api
-
-__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-
-StablediffunityVersion = Path(os.path.join(Path(__location__).parent.absolute(),'Version.txt')).read_text()
+from scripts.stablediffunity import StablediffunityVersion
 
 def stablediffunity_api(_: gr.Blocks, app: FastAPI):
     @app.get("/stablediffunity/version")
