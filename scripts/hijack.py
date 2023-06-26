@@ -1,11 +1,13 @@
 import os
 from copy import copy
 from enum import Enum
+from pickle import TRUE
 from typing import Tuple, List
 
 from modules import img2img, script_callbacks
 from scripts import external_code
-
+#from scripts.global_scripts.sdu_globals import GlobalSetting
+from scripts.global_scripts.sdu_globals import global_setting
 class HijackData:
 
     def __init__(self, module, name, new_function):
@@ -64,13 +66,29 @@ def sample_dpmpp_2m(model, x, sigmas, extra_args=None, callback=None, disable=No
     t_fn = lambda sigma: sigma.log().neg()
     old_denoised = None
 
+
+    #from sdu_globals import global_setting
     from pathlib import Path
     from datetime import datetime
-    from modules.processing import folder_path
+
+    
     current_time = datetime.now().strftime("%H_%M_%S")
+    print("SDU global_setting.OutputPath:" + global_setting.OutputPath)
+    print("SDU global_setting.OutputTensors:" + str(global_setting.OutputTensors)+",type:"+type(global_setting.OutputTensors).__name__)
+    #print("SDU global_setting.info_str:" + GlobalSetting.info_str())
     print("SDU_s_in:" + str(s_in.item()))
-    torch.log(sigmas)
+    #torch.log(sigmas)
     print("SDU_sigmas:" + ", ".join(f'{x.item():.3f}' for x in sigmas)+"\n",flush=True)
+
+    output_path = Path(global_setting.OutputPath, "tensors")
+    if global_setting.OutputTensors == True:
+        print("SDU OutputTensors!!")
+        if not os.path.exists(output_path):
+            # Create a new directory because it does not exist
+            os.makedirs(output_path)
+    else:
+        print("SDU Dont OutputTensors!!")
+
     for i in trange(len(sigmas) - 1, disable=disable):
 
         denoised = model(x, sigmas[i] * s_in, **extra_args)
@@ -87,8 +105,10 @@ def sample_dpmpp_2m(model, x, sigmas, extra_args=None, callback=None, disable=No
             denoised_d = (1 + 1 / (2 * r)) * denoised - (1 / (2 * r)) * old_denoised
             x = (sigma_fn(t_next) / sigma_fn(t)) * x - (-h).expm1() * denoised_d
         old_denoised = denoised
-        #x_path = Path(folder_path,"x_"+current_time+"__"+ str(i)+".pt")
-        #torch.save(x, x_path)
+        if global_setting.OutputTensors == True:
+            x_path = Path(output_path,"x_"+current_time+"__"+ str(i)+".pt")
+            #print("x_path:"+str(x_path))
+            torch.save(x, x_path)
     return x
 
 
