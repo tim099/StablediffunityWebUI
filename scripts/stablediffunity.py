@@ -51,7 +51,7 @@ class Script(webui_scripts.Script):
         print("StableDiffUnity Script process(self, p, *args),p.width:"+str(p.width)+",p.height:"+str(p.height))
         print("StableDiffUnity ,args_from:"+str(self.args_from)+",args_to:"+str(self.args_to))
         print("StableDiffUnity ,global_setting:"+global_setting.info_str())
-        print("StableDiffUnity ,GlobalSetting.OutputPath:"+global_setting.OutputPath)
+        print("StableDiffUnity ,GlobalSetting.OutputPath:"+global_setting.FolderPath)
     def uigroup(self, tabname: str, is_img2img: bool, elem_id_tabname: str):
         group = StableDiffUnityUIGroup()
         return group.render_and_register_unit(tabname, is_img2img)

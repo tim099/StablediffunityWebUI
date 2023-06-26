@@ -73,19 +73,26 @@ def sample_dpmpp_2m(model, x, sigmas, extra_args=None, callback=None, disable=No
 
     
     current_time = datetime.now().strftime("%H_%M_%S")
-    print("SDU global_setting.OutputPath:" + global_setting.OutputPath)
+    print("SDU global_setting.OutputPath:" + global_setting.FolderPath)
     print("SDU global_setting.OutputTensors:" + str(global_setting.OutputTensors)+",type:"+type(global_setting.OutputTensors).__name__)
     #print("SDU global_setting.info_str:" + GlobalSetting.info_str())
     print("SDU_s_in:" + str(s_in.item()))
     #torch.log(sigmas)
     print("SDU_sigmas:" + ", ".join(f'{x.item():.3f}' for x in sigmas)+"\n",flush=True)
-
-    output_path = Path(global_setting.OutputPath, "tensors")
-    if global_setting.OutputTensors == True:
+    #global_setting.LoadTensor
+    folder_path = Path(global_setting.FolderPath, "tensors")
+    if global_setting.LoadTensor:
+        tensor_path = Path(folder_path,global_setting.LoadTensorFileName)
+        if os.path.exists(tensor_path):
+            print("LoadTensor tensor_path:"+str(tensor_path))
+            return torch.load(tensor_path)
+        else:
+            print("!os.path.exists(tensor_path) tensor_path:"+str(tensor_path))
+    if global_setting.OutputTensors:
         print("SDU OutputTensors!!")
-        if not os.path.exists(output_path):
+        if not os.path.exists(folder_path):
             # Create a new directory because it does not exist
-            os.makedirs(output_path)
+            os.makedirs(folder_path)
     else:
         print("SDU Dont OutputTensors!!")
 
@@ -105,8 +112,8 @@ def sample_dpmpp_2m(model, x, sigmas, extra_args=None, callback=None, disable=No
             denoised_d = (1 + 1 / (2 * r)) * denoised - (1 / (2 * r)) * old_denoised
             x = (sigma_fn(t_next) / sigma_fn(t)) * x - (-h).expm1() * denoised_d
         old_denoised = denoised
-        if global_setting.OutputTensors == True:
-            x_path = Path(output_path,"x_"+current_time+"__"+ str(i)+".pt")
+        if global_setting.OutputTensors:
+            x_path = Path(folder_path,"x_"+current_time+"__"+ str(i)+".pt")
             #print("x_path:"+str(x_path))
             torch.save(x, x_path)
     return x
