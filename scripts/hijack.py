@@ -80,7 +80,7 @@ def sample_dpmpp_2m(model, x, sigmas, extra_args=None, callback=None, disable=No
     #torch.log(sigmas)
     print("SDU_sigmas:" + ", ".join(f'{x.item():.3f}' for x in sigmas)+"\n",flush=True)
     #global_setting.LoadTensor
-    folder_path = Path(global_setting.FolderPath, "tensors")
+    folder_path = Path(global_setting.FolderPath)#, "tensors"
     if global_setting.LoadTensor:
         tensor_path = Path(folder_path,global_setting.LoadTensorFileName)
         if os.path.exists(tensor_path):
@@ -113,7 +113,7 @@ def sample_dpmpp_2m(model, x, sigmas, extra_args=None, callback=None, disable=No
             x = (sigma_fn(t_next) / sigma_fn(t)) * x - (-h).expm1() * denoised_d
         old_denoised = denoised
         if global_setting.OutputTensors:
-            x_path = Path(folder_path,"x_"+current_time+"__"+ str(i)+".pt")
+            x_path = Path(folder_path,"x_"+current_time+"__"+ "{:03d}".format(i)+".pt")
             #print("x_path:"+str(x_path))
             torch.save(x, x_path)
     return x
