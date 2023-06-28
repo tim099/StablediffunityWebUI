@@ -349,8 +349,8 @@ class DPMSolver(nn.Module):
         x_3 = x - self.sigma(t_next) * h.expm1() * eps - self.sigma(t_next) / r2 * (h.expm1() / h - 1) * (eps_r2 - eps)
         return x_3, eps_cache
 
-    def dpm_solver_fast(self, sample_data_x, t_start, t_end, nfe, eta=0., s_noise=1., noise_sampler=None):
-        self.sample_data.x = sample_data_x;
+    def dpm_solver_fast(self, x, t_start, t_end, nfe, eta=0., s_noise=1., noise_sampler=None):
+        self.sample_data.x = x;
         noise_sampler = default_noise_sampler(self.sample_data.x) if noise_sampler is None else noise_sampler
         if not t_end > t_start and eta:
             raise ValueError('eta must be 0 for reverse sampling')
