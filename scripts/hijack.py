@@ -6,8 +6,10 @@ from typing import Tuple, List
 
 from modules import img2img, script_callbacks
 from scripts import external_code
-#from scripts.global_scripts.sdu_globals import GlobalSetting
+
+from scripts.global_scripts.sdu_sample_data import SampleData
 from scripts.global_scripts.sdu_globals import global_setting
+
 class HijackData:
 
     def __init__(self, module, name, new_function):
@@ -41,7 +43,20 @@ class Hijack:
         print("SDU_do_hijack")
         script_callbacks.on_script_unloaded(self.undo_hijack)
         import k_diffusion.sampling
-        self.add_hijack_data(k_diffusion.sampling,'sample_dpmpp_2m',sample_dpmpp_2m);
+        import scripts.sdu_sampling
+        from scripts.sdu_sampling import sample_dpmpp_2m
+        #self.add_hijack_data(k_diffusion.sampling,'sample_dpmpp_2m',scripts.sdu_sampling.sample_dpmpp_2m);
+        #self.add_hijack_data(k_diffusion.sampling,'sample_euler',scripts.sdu_sampling.sample_euler);
+        self.add_hijack_sampling(k_diffusion.sampling, scripts.sdu_sampling, 'sample_dpmpp_2m')
+        self.add_hijack_sampling(k_diffusion.sampling, scripts.sdu_sampling, 'sample_euler')
+        self.add_hijack_sampling(k_diffusion.sampling, scripts.sdu_sampling, 'sample_euler_ancestral')
+        self.add_hijack_sampling(k_diffusion.sampling, scripts.sdu_sampling, 'sample_lms')
+        self.add_hijack_sampling(k_diffusion.sampling, scripts.sdu_sampling, 'sample_heun')
+        self.add_hijack_sampling(k_diffusion.sampling, scripts.sdu_sampling, 'sample_dpm_2')
+        self.add_hijack_sampling(k_diffusion.sampling, scripts.sdu_sampling, 'sample_dpm_2_ancestral')
+
+    def add_hijack_sampling(self, module, new_module, name):
+        self.add_hijack_data(module, name, getattr(new_module,name));
 
     def add_hijack_data(self, module, name, new_value):
         hijack_data = HijackData(module,name,new_value);
@@ -53,70 +68,6 @@ class Hijack:
             hijack_data.undo_hijack()
 
         self.hijack_list.clear()
-
-
-import torch
-from tqdm.auto import trange, tqdm
-@torch.no_grad()
-def sample_dpmpp_2m(model, x, sigmas, extra_args=None, callback=None, disable=None):
-    """DPM-Solver++(2M)."""
-    extra_args = {} if extra_args is None else extra_args
-    s_in = x.new_ones([x.shape[0]])
-    sigma_fn = lambda t: t.neg().exp()
-    t_fn = lambda sigma: sigma.log().neg()
-    old_denoised = None
-
-
-    #from sdu_globals import global_setting
-    from pathlib import Path
-    from datetime import datetime
-
-    
-    current_time = datetime.now().strftime("%H_%M_%S")
-    print("SDU global_setting.OutputPath:" + global_setting.FolderPath)
-    print("SDU global_setting.OutputTensors:" + str(global_setting.OutputTensors)+",type:"+type(global_setting.OutputTensors).__name__)
-    #print("SDU global_setting.info_str:" + GlobalSetting.info_str())
-    print("SDU_s_in:" + str(s_in.item()))
-    #torch.log(sigmas)
-    print("SDU_sigmas:" + ", ".join(f'{x.item():.3f}' for x in sigmas)+"\n",flush=True)
-    #global_setting.LoadTensor
-    folder_path = Path(global_setting.FolderPath)#, "tensors"
-    if global_setting.LoadTensor:
-        tensor_path = Path(folder_path,global_setting.LoadTensorFileName)
-        if os.path.exists(tensor_path):
-            print("LoadTensor tensor_path:"+str(tensor_path))
-            return torch.load(tensor_path)
-        else:
-            print("!os.path.exists(tensor_path) tensor_path:"+str(tensor_path))
-    if global_setting.OutputTensors:
-        print("SDU OutputTensors!!")
-        if not os.path.exists(folder_path):
-            # Create a new directory because it does not exist
-            os.makedirs(folder_path)
-    else:
-        print("SDU Dont OutputTensors!!")
-
-    for i in trange(len(sigmas) - 1, disable=disable):
-
-        denoised = model(x, sigmas[i] * s_in, **extra_args)
-
-        if callback is not None:
-            callback({'x': x, 'i': i, 'sigma': sigmas[i], 'sigma_hat': sigmas[i], 'denoised': denoised})
-        t, t_next = t_fn(sigmas[i]), t_fn(sigmas[i + 1])
-        h = t_next - t
-        if old_denoised is None or sigmas[i + 1] == 0:
-            x = (sigma_fn(t_next) / sigma_fn(t)) * x - (-h).expm1() * denoised
-        else:
-            h_last = t - t_fn(sigmas[i - 1])
-            r = h_last / h
-            denoised_d = (1 + 1 / (2 * r)) * denoised - (1 / (2 * r)) * old_denoised
-            x = (sigma_fn(t_next) / sigma_fn(t)) * x - (-h).expm1() * denoised_d
-        old_denoised = denoised
-        if global_setting.OutputTensors:
-            x_path = Path(folder_path,"x_"+current_time+"__"+ "{:03d}".format(i)+".pt")
-            #print("x_path:"+str(x_path))
-            torch.save(x, x_path)
-    return x
 
 
 instance = Hijack()
