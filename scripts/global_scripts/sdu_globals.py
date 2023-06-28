@@ -20,18 +20,19 @@ class GlobalSetting():
         #self.LoadTensorFileName = get_arg_val(args,'LoadTensorFileName', self.LoadTensorFileName)
 
         self.WebUICMDs.clear()
-        cmds = get_arg_val(args,'WebUICMDs', [])
-        print("cmds:"+json.dumps(cmds))
-        for cmd in cmds:
-            class_name = get_arg_val(cmd,'Class','None')
-            print("class_name:"+class_name)
-            class_data = get_arg_val(cmd,'Data',None)
-            print("class_data:"+json.dumps(class_data))
+        cmds = get_arg_val(args,'WebUICMDs', self.WebUICMDs)
+        if cmds is not None:
+            print("cmds:"+json.dumps(cmds))
+            for cmd in cmds:
+                class_name = get_arg_val(cmd,'Class','None')
+                print("class_name:"+class_name)
+                class_data = get_arg_val(cmd,'Data',None)
+                print("class_data:"+json.dumps(class_data))
 
-            cls = getattr(webui_cmd, class_name) # get class
-            cmd_obj: webui_cmd.SDU_WebUICMD = cls() # create object if class
-            cmd_obj.set_args(class_data)
-            self.WebUICMDs.append(cmd_obj)
+                cls = getattr(webui_cmd, class_name) # get class
+                cmd_obj: webui_cmd.SDU_WebUICMD = cls() # create object if class
+                cmd_obj.set_args(class_data)
+                self.WebUICMDs.append(cmd_obj)
     def info_str(self):
         if(self.args is None):
             return "None"

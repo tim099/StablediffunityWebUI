@@ -35,7 +35,7 @@ class SDU_WebUICMDOutputTensors(SDU_WebUICMD):
         self.OutputAtSteps = get_arg_val(args,'OutputAtSteps', self.OutputAtSteps)
         print("OutputAtSteps:"+", ".join(f'{"{:02d}".format(x)}' for x in self.OutputAtSteps))
     def sample_start(self):
-        print("SDU_WebUICMDOutputTensors sample_start")
+        #print("SDU_WebUICMDOutputTensors sample_start")
         self.CurrentTime = datetime.now().strftime("%H_%M_%S")
         self.folder_path = Path(self.FolderPath)#, "tensors"
         if not os.path.exists(self.folder_path):
@@ -62,7 +62,8 @@ class SDU_WebUICMDLoadTensor(SDU_WebUICMD):
         self.LoadAtStep = get_arg_val(args,'LoadAtStep', self.LoadAtStep)
         self.LoadTensorFileName = get_arg_val(args,'LoadTensorFileName', self.LoadTensorFileName)
     def sample_start(self):
-        print("SDU_WebUICMDLoadTensor sample_start")
+        #print("SDU_WebUICMDLoadTensor sample_start")
+        pass
 
     #skip current sample if return true
     def skip_sample(self, data:SampleData) -> bool:
