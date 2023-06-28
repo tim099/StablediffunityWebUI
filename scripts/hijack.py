@@ -55,6 +55,13 @@ class Hijack:
         self.add_hijack_sampling(k_diffusion.sampling, scripts.sdu_sampling, 'sample_dpm_2')
         self.add_hijack_sampling(k_diffusion.sampling, scripts.sdu_sampling, 'sample_dpm_2_ancestral')
 
+        self.add_hijack_sampling(k_diffusion.sampling, scripts.sdu_sampling, 'sample_dpm_fast')
+        self.add_hijack_sampling(k_diffusion.sampling, scripts.sdu_sampling, 'sample_dpm_adaptive')
+        self.add_hijack_sampling(k_diffusion.sampling, scripts.sdu_sampling, 'sample_dpmpp_2s_ancestral')
+        self.add_hijack_sampling(k_diffusion.sampling, scripts.sdu_sampling, 'sample_dpmpp_sde')
+        self.add_hijack_sampling(k_diffusion.sampling, scripts.sdu_sampling, 'sample_dpmpp_2m_sde')
+        
+
     def add_hijack_sampling(self, module, new_module, name):
         self.add_hijack_data(module, name, getattr(new_module,name));
 
