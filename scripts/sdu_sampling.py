@@ -293,13 +293,13 @@ def sample_dpm_2_ancestral(model, x, sigmas, extra_args=None, callback=None, dis
 class DPMSolver(nn.Module):
     """DPM-Solver. See https://arxiv.org/abs/2206.00927."""
 
-    def __init__(self, model, extra_args=None, eps_callback=None, info_callback=None):
+    def __init__(self, model, sample_data:SampleData, extra_args=None, eps_callback=None, info_callback=None):
         super().__init__()
         self.model = model
         self.extra_args = {} if extra_args is None else extra_args
         self.eps_callback = eps_callback
         self.info_callback = info_callback
-
+        self.sample_data = sample_data
     def t(self, sigma):
         return -sigma.log()
 
@@ -359,6 +359,12 @@ class DPMSolver(nn.Module):
             orders = [3] * (m - 1) + [nfe % 3]
 
         for i in range(len(orders)):
+            #SDU Hijack Start
+            self.sample_data.step = i
+            global_setting.trigger(self.sample_data)
+            if(global_setting.skip_sample(self.sample_data)):
+                continue
+            #SDU Hijack End
             eps_cache = {}
             t, t_next = ts[i], ts[i + 1]
             if eta:
@@ -445,10 +451,13 @@ def sample_dpm_fast(model, x, sigma_min, sigma_max, n, extra_args=None, callback
     if sigma_min <= 0 or sigma_max <= 0:
         raise ValueError('sigma_min and sigma_max must not be 0')
     with tqdm(total=n, disable=disable) as pbar:
-        dpm_solver = DPMSolver(model, extra_args, eps_callback=pbar.update)
+        dpm_solver = DPMSolver(model, sample_data, extra_args, eps_callback=pbar.update)
         if callback is not None:
             dpm_solver.info_callback = lambda info: callback({'sigma': dpm_solver.sigma(info['t']), 'sigma_hat': dpm_solver.sigma(info['t_up']), **info})
-        return dpm_solver.dpm_solver_fast(x, dpm_solver.t(torch.tensor(sigma_max)), dpm_solver.t(torch.tensor(sigma_min)), n, eta, s_noise, noise_sampler)
+
+        sample_data.x = dpm_solver.dpm_solver_fast(x, dpm_solver.t(torch.tensor(sigma_max)), dpm_solver.t(torch.tensor(sigma_min)), n, eta, s_noise, noise_sampler)
+        sample_end(sample_data)#SDU Hijack
+        return sample_data.x
 
 
 @torch.no_grad()
@@ -459,10 +468,12 @@ def sample_dpm_adaptive(model, x, sigma_min, sigma_max, extra_args=None, callbac
     if sigma_min <= 0 or sigma_max <= 0:
         raise ValueError('sigma_min and sigma_max must not be 0')
     with tqdm(disable=disable) as pbar:
-        dpm_solver = DPMSolver(model, extra_args, eps_callback=pbar.update)
+        dpm_solver = DPMSolver(model, sample_data, extra_args, eps_callback=pbar.update)
         if callback is not None:
             dpm_solver.info_callback = lambda info: callback({'sigma': dpm_solver.sigma(info['t']), 'sigma_hat': dpm_solver.sigma(info['t_up']), **info})
         x, info = dpm_solver.dpm_solver_adaptive(x, dpm_solver.t(torch.tensor(sigma_max)), dpm_solver.t(torch.tensor(sigma_min)), order, rtol, atol, h_init, pcoeff, icoeff, dcoeff, accept_safety, eta, s_noise, noise_sampler)
+
+    sample_end(sample_data)#SDU Hijack
     if return_info:
         return x, info
     return x
