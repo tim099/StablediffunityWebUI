@@ -26,6 +26,7 @@ class SDU_WebUICMDOutputTensors(SDU_WebUICMD):
         self.FolderPath = 'None'
         self.OutputAtSteps:list[int] = []
         self.CurrentTime = 'None'
+        self.OutputJsonTensor = False
     def set_args(self, args: dict):
         print("SDU_WebUICMDOutputTensors set_args")
 
@@ -33,6 +34,7 @@ class SDU_WebUICMDOutputTensors(SDU_WebUICMD):
 
         self.OutputAtSteps.clear()
         self.OutputAtSteps = get_arg_val(args,'OutputAtSteps', self.OutputAtSteps)
+        self.OutputJsonTensor = get_arg_val(args,'OutputJsonTensor', self.OutputJsonTensor)
         print("OutputAtSteps:"+", ".join(f'{"{:02d}".format(x)}' for x in self.OutputAtSteps))
     def sample_start(self):
         #print("SDU_WebUICMDOutputTensors sample_start")
@@ -45,9 +47,24 @@ class SDU_WebUICMDOutputTensors(SDU_WebUICMD):
         pass
     def trigger(self, data:SampleData):
         if data.step in self.OutputAtSteps:
-            x_path = Path(self.folder_path,"x_"+self.CurrentTime+"__"+ "{:03d}".format(data.step)+".pt")
+            from scripts.global_scripts.sdu_globals import global_setting
+            #x_path = Path(self.folder_path,"x_"+self.CurrentTime+"__"+ "{:03d}".format(data.step)+".pt")
+            file_name = global_setting.CurOutputImageName+"__"+ "{:03d}".format(data.step)
+            x_path = Path(self.folder_path,file_name+".pt")
             #print("x_path:"+str(x_path))
             torch.save(data.x, x_path)
+            import json
+            data_list = data.x.tolist()
+            with open(Path(self.folder_path,file_name+".json"), 'w') as f:
+                json.dump(data_list, f)
+            #for size in data.x.shape:
+            #    pass
+            #if self.OutputJsonTensor:
+            #    for x in data.x:
+            #        for y in x: 
+            #            for z in y:
+            #                for w in z:
+            #                    json
         #print(f"SDU_WebUICMDOutputTensors trigger step:{str(step)}")
 
 class SDU_WebUICMDLoadTensor(SDU_WebUICMD):

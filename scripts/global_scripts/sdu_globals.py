@@ -9,12 +9,14 @@ import json
 class GlobalSetting():
     def __init__(self) -> None:
         self.args: dict = None
+        self.CurOutputImageName = 'None'
         #self.FolderPath = 'None'
         #self.LoadTensor = False
         #self.LoadTensorFileName = 'None'
         self.WebUICMDs: list[webui_cmd.SDU_WebUICMD] = []
     def set_args(self, args: dict):
         self.args = args
+        self.CurOutputImageName = get_arg_val(args,'CurOutputImageName', self.CurOutputImageName)
         #self.FolderPath = get_arg_val(args,'FolderPath', self.FolderPath)
         #self.LoadTensor = get_arg_val(args,'LoadTensor', self.LoadTensor)
         #self.LoadTensorFileName = get_arg_val(args,'LoadTensorFileName', self.LoadTensorFileName)
