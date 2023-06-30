@@ -38,6 +38,7 @@ def sample_start(model, sampler, x, sigmas, extra_args=None, callback=None, disa
     return sample_data
 def sample_end(sample_data:SampleData):
     #sys.stdout.flush()
+    global_setting.sample_end(sample_data)
     print("SDU sample_end\n",flush=True)
     print("skip_steps:" + ", ".join(f'{str(step)}' for step in sample_data.skip_steps)+"\n",flush=True)
 
@@ -55,9 +56,7 @@ def sample_dpmpp_2m(model, x, sigmas, extra_args=None, callback=None, disable=No
     for i in trange(len(sigmas) - 1, disable=disable):
 
         #SDU Hijack Start
-        sample_data.step = i
-        global_setting.trigger(sample_data)
-        if(global_setting.skip_sample(sample_data)):
+        if(global_setting.on_sample(sample_data, i)):
             continue
         #SDU Hijack End
 
@@ -92,9 +91,7 @@ def sample_euler(model, x, sigmas, extra_args=None, callback=None, disable=None,
     s_in = sample_data.x.new_ones([sample_data.x.shape[0]])
     for i in trange(len(sigmas) - 1, disable=disable):
         #SDU Hijack Start
-        sample_data.step = i
-        global_setting.trigger(sample_data)
-        if(global_setting.skip_sample(sample_data)):
+        if(global_setting.on_sample(sample_data, i)):
             continue
         #SDU Hijack End
         gamma = min(s_churn / (len(sigmas) - 1), 2 ** 0.5 - 1) if s_tmin <= sigmas[i] <= s_tmax else 0.
@@ -125,9 +122,7 @@ def sample_euler_ancestral(model, x, sigmas, extra_args=None, callback=None, dis
     s_in = sample_data.x.new_ones([sample_data.x.shape[0]])
     for i in trange(len(sigmas) - 1, disable=disable):
         #SDU Hijack Start
-        sample_data.step = i
-        global_setting.trigger(sample_data)
-        if(global_setting.skip_sample(sample_data)):
+        if(global_setting.on_sample(sample_data, i)):
             continue
         #SDU Hijack End
 
@@ -155,9 +150,7 @@ def sample_lms(model, x, sigmas, extra_args=None, callback=None, disable=None, o
     ds = []
     for i in trange(len(sigmas) - 1, disable=disable):
         #SDU Hijack Start
-        sample_data.step = i
-        global_setting.trigger(sample_data)
-        if(global_setting.skip_sample(sample_data)):
+        if(global_setting.on_sample(sample_data, i)):
             continue
         #SDU Hijack End
 
@@ -184,9 +177,7 @@ def sample_heun(model, x, sigmas, extra_args=None, callback=None, disable=None, 
     s_in = sample_data.x.new_ones([sample_data.x.shape[0]])
     for i in trange(len(sigmas) - 1, disable=disable):
         #SDU Hijack Start
-        sample_data.step = i
-        global_setting.trigger(sample_data)
-        if(global_setting.skip_sample(sample_data)):
+        if(global_setting.on_sample(sample_data, i)):
             continue
         #SDU Hijack End
 
@@ -224,9 +215,7 @@ def sample_dpm_2(model, x, sigmas, extra_args=None, callback=None, disable=None,
     s_in = sample_data.x.new_ones([sample_data.x.shape[0]])
     for i in trange(len(sigmas) - 1, disable=disable):
         #SDU Hijack Start
-        sample_data.step = i
-        global_setting.trigger(sample_data)
-        if(global_setting.skip_sample(sample_data)):
+        if(global_setting.on_sample(sample_data, i)):
             continue
         #SDU Hijack End
 
@@ -266,9 +255,7 @@ def sample_dpm_2_ancestral(model, x, sigmas, extra_args=None, callback=None, dis
     s_in = sample_data.x.new_ones([sample_data.x.shape[0]])
     for i in trange(len(sigmas) - 1, disable=disable):
         #SDU Hijack Start
-        sample_data.step = i
-        global_setting.trigger(sample_data)
-        if(global_setting.skip_sample(sample_data)):
+        if(global_setting.on_sample(sample_data, i)):
             continue
         #SDU Hijack End
 
@@ -365,9 +352,7 @@ class DPMSolver(nn.Module):
 
         for i in range(len(orders)):
             #SDU Hijack Start
-            self.sample_data.step = i
-            global_setting.trigger(self.sample_data)
-            if(global_setting.skip_sample(self.sample_data)):
+            if(global_setting.on_sample(self.sample_data, i)):
                 continue
             #SDU Hijack End
             eps_cache = {}
@@ -412,6 +397,10 @@ class DPMSolver(nn.Module):
         info = {'steps': 0, 'nfe': 0, 'n_accept': 0, 'n_reject': 0}
 
         while s < t_end - 1e-5 if forward else s > t_end + 1e-5:
+            #SDU Hijack Start
+            #if(global_setting.on_sample(self.sample_data, i)):
+                #continue
+            #SDU Hijack End
             eps_cache = {}
             t = torch.minimum(t_end, s + pid.h) if forward else torch.maximum(t_end, s + pid.h)
             if eta:
@@ -497,9 +486,7 @@ def sample_dpmpp_2s_ancestral(model, x, sigmas, extra_args=None, callback=None, 
 
     for i in trange(len(sigmas) - 1, disable=disable):
         #SDU Hijack Start
-        sample_data.step = i
-        global_setting.trigger(sample_data)
-        if(global_setting.skip_sample(sample_data)):
+        if(global_setting.on_sample(sample_data, i)):
             continue
         #SDU Hijack End
 
@@ -542,9 +529,7 @@ def sample_dpmpp_sde(model, x, sigmas, extra_args=None, callback=None, disable=N
 
     for i in trange(len(sigmas) - 1, disable=disable):
         #SDU Hijack Start
-        sample_data.step = i
-        global_setting.trigger(sample_data)
-        if(global_setting.skip_sample(sample_data)):
+        if(global_setting.on_sample(sample_data, i)):
             continue
         #SDU Hijack End
 
@@ -598,9 +583,7 @@ def sample_dpmpp_2m_sde(model, x, sigmas, extra_args=None, callback=None, disabl
 
     for i in trange(len(sigmas) - 1, disable=disable):
         #SDU Hijack Start
-        sample_data.step = i
-        global_setting.trigger(sample_data)
-        if(global_setting.skip_sample(sample_data)):
+        if(global_setting.on_sample(sample_data, i)):
             continue
         #SDU Hijack End
         denoised = model(sample_data.x, sigmas[i] * s_in, **extra_args)

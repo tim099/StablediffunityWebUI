@@ -42,6 +42,10 @@ class Hijack:
     def do_hijack(self):
         print("SDU_do_hijack")
         script_callbacks.on_script_unloaded(self.undo_hijack)
+        import modules.processing
+        import scripts.sdu_processing
+        self.add_hijack_data(modules.processing,'process_images_inner',scripts.sdu_processing.process_images_inner)
+
         import k_diffusion.sampling
         import scripts.sdu_sampling
         from scripts.sdu_sampling import sample_dpmpp_2m

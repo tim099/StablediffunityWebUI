@@ -43,16 +43,26 @@ class GlobalSetting():
     def sample_start(self):
         for cmd in self.WebUICMDs:
             cmd.sample_start()
+    def on_sample(self, data:SampleData, step: int) -> bool:#skip current sample step if return true
+        data.step = step;
+        self.trigger_cmd(data)
+        return self.skip_sample(data)
+
     def skip_sample(self, data:SampleData) -> bool: #skip current sample step if return true
         for cmd in self.WebUICMDs:
             if cmd.skip_sample(data):
                 data.skip_steps.append(data.step)
                 return True
         return False
-    def trigger(self, data: SampleData):
+
+    def trigger_cmd(self, data: SampleData):
         for cmd in self.WebUICMDs:
             cmd.trigger(data)
-
+    def sample_end(self, data: SampleData):
+        data.step += 1
+        print(f"sample_end data.step:{str(data.step)}",flush=True)
+        for cmd in self.WebUICMDs:
+            cmd.sample_end(data)
 global global_setting
 global_setting: GlobalSetting = GlobalSetting()
 

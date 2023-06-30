@@ -20,6 +20,10 @@ class SDU_WebUICMD():
         return False
     def trigger(self, data:SampleData):
         pass
+        #print("SDU_WebUICMD trigger", flush = True)
+    def sample_end(self, data: SampleData):
+        print(f"SDU_WebUICMD sample_end step:{str(data.step)}", flush = True)
+        self.trigger(data)
 
 class SDU_WebUICMDOutputTensors(SDU_WebUICMD):
     def __init__(self) -> None:
