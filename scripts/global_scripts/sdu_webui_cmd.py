@@ -57,10 +57,11 @@ class SDU_WebUICMDOutputTensors(SDU_WebUICMD):
             x_path = Path(self.folder_path,file_name+".pt")
             #print("x_path:"+str(x_path))
             torch.save(data.x, x_path)
-            import json
-            data_list = data.x.tolist()
-            with open(Path(self.folder_path,file_name+".json"), 'w') as f:
-                json.dump(data_list, f)
+            if self.OutputJsonTensor:
+                import json
+                data_list = data.x.tolist()
+                with open(Path(self.folder_path,file_name+".json"), 'w') as f:
+                    json.dump(data_list, f)
             #for size in data.x.shape:
             #    pass
             #if self.OutputJsonTensor:
